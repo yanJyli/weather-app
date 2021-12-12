@@ -33,16 +33,12 @@ export default class App extends Component {
         this.setState({
           weather: response,
           isLoading: false
-        }) 
-        const { weather } = this.state;
-        if (searchQuery!==weather.name) {
-        this.setState({display: 'block'})
-        }
+        })
       });
   };
 
   handleSearchSubmit = (e) => {
-
+    
     if (e.key !== 'Enter' && fetch) {      
       return;
     }
@@ -50,13 +46,21 @@ export default class App extends Component {
     this.setState({
       isLoading: true,
     }, this.sendRequest);
+
+    const { weather } = this.state; 
+    if (weather.cod === "404") {
+    this.setState({display: 'block'})
+    }
   };
 
+
+  
   render() {
     const { searchQuery, weather, isLoading, display } = this.state;
 
     return (
       <div className={weather && weather.main.temp < 0 ? 'container cold' : 'container'}>
+
         <input
           type="text"
           placeholder="Search..."
@@ -65,27 +69,34 @@ export default class App extends Component {
           onChange={this.handleSearchChange}
           onKeyDown={this.handleSearchSubmit}
         />
-        
+
         {isLoading ? <div className="loader"></div> : null}
-        {weather ? (
-          <div>
-            <div className="location-wrapper">
-              <div className="location">
-                {weather.name}, {weather.sys.country}
+
+          {weather ? (
+            <div>
+            {weather.cod === "404" ? (
+              <div>You submitted a city that doesn't exist</div>
+              ) : (
+                <div>
+                <div className="location-wrapper">
+                  <div className="location">
+                    {weather.name}, {weather.sys.country}
+                  </div>
+                  <div className="date">
+                    {DateTime.fromSeconds(weather.dt).toLocaleString(
+                      DateTime.DATE_HUGE
+                    )}
+                  </div>
+                </div>
+                <div className="weather-wrapper">
+                  <div className="temp">{Math.round(weather.main.temp)}°C</div>
+                  <div className="weather">{weather.weather[0].main}</div>
+                </div>
               </div>
-              <div className="date">
-                {DateTime.fromSeconds(weather.dt).toLocaleString(
-                  DateTime.DATE_HUGE
-                )}
-              </div>
+              )}
             </div>
-            <div className="weather-wrapper">
-              <div className="temp">{Math.round(weather.main.temp)}°C</div>
-              <div className="weather">{weather.weather[0].main}</div>
-            </div>
-          </div>
-            
-        ) : <div className='errorMessage' display={display}>You submitted a city that doesn't exist</div>}
+          ) : null}
+
       </div>
     );
   }
