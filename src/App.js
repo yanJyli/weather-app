@@ -4,7 +4,7 @@ import { DateTime } from 'luxon';
 import './App.css';
 
 const API_URL = 'https://api.openweathermap.org/data/2.5/';
-const API_KEY = '33178d46dea4c98a92d98aa6ea4ebc24';
+const API_KEY = process.env.REACT_APP_API_KEY;
 
 export default class App extends Component {
   constructor(props) {
@@ -13,8 +13,7 @@ export default class App extends Component {
     this.state = {
       searchQuery: '',
       weather: null,
-      isLoading: false,
-      display: 'none' 
+      isLoading: false
     };
   }
 
@@ -38,7 +37,6 @@ export default class App extends Component {
   };
 
   handleSearchSubmit = (e) => {
-    
     if (e.key !== 'Enter' && fetch) {      
       return;
     }
@@ -46,20 +44,13 @@ export default class App extends Component {
     this.setState({
       isLoading: true,
     }, this.sendRequest);
-
-    const { weather } = this.state; 
-    if (weather.cod === "404") {
-    this.setState({display: 'block'})
-    }
   };
 
-
-  
   render() {
-    const { searchQuery, weather, isLoading, display } = this.state;
+    const { searchQuery, weather, isLoading } = this.state;
 
     return (
-      <div className={weather && weather.main.temp < 0 ? 'container cold' : 'container'}>
+      <div className={weather && weather.main && weather.main.temp < 0 ? 'container cold' : 'container'}>
 
         <input
           type="text"
@@ -72,30 +63,26 @@ export default class App extends Component {
 
         {isLoading ? <div className="loader"></div> : null}
 
-          {weather ? (
-            <div>
-            {weather.cod === "404" ? (
-              <div>You submitted a city that doesn't exist</div>
-              ) : (
-                <div>
-                <div className="location-wrapper">
-                  <div className="location">
-                    {weather.name}, {weather.sys.country}
-                  </div>
-                  <div className="date">
-                    {DateTime.fromSeconds(weather.dt).toLocaleString(
-                      DateTime.DATE_HUGE
-                    )}
-                  </div>
-                </div>
-                <div className="weather-wrapper">
-                  <div className="temp">{Math.round(weather.main.temp)}°C</div>
-                  <div className="weather">{weather.weather[0].main}</div>
-                </div>
+        {weather && weather.cod === 200 ? (
+          <div>
+            <div className="location-wrapper">
+              <div className="location">
+                {weather.name}, {weather.sys.country}
               </div>
-              )}
+              <div className="date">
+                {DateTime.fromSeconds(weather.dt).toLocaleString(
+                  DateTime.DATE_HUGE
+                )}
+              </div>
             </div>
-          ) : null}
+            <div className="weather-wrapper">
+              <div className="temp">{Math.round(weather.main.temp)}°C</div>
+              <div className="weather">{weather.weather[0].main}</div>
+            </div>
+          </div>
+        ) : null}
+
+        {weather && weather.cod === "404" ? (<div className='errorMessage'>You submitted a city that doesn't exist</div>) : null}
 
       </div>
     );
